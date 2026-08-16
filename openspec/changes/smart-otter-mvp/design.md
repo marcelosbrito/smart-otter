@@ -29,24 +29,26 @@ No ADRs exist yet in `openspec/changes/smart-otter-mvp/` — they will be create
 
 ```
 smart-otter/
-├── app/
-│   ├── (auth)/          # Auth-related routes (Clerk wrappers)
-│   ├── search/          # Search page and API route
-│   ├── favorites/       # Favorites dashboard
-│   └── layout.tsx       # Root layout with Clerk provider
 ├── src/
+│   ├── app/
+│   │   ├── (auth)/          # Auth-related routes (Clerk wrappers)
+│   │   ├── search/          # Search page and API route
+│   │   ├── favorites/       # Favorites dashboard
+│   │   └── layout.tsx       # Root layout with Clerk provider
 │   ├── lib/
-│   │   ├── ai/          # AI service layer, providers, normalization
-│   │   ├── cache/       # Knowledge cache implementation
-│   │   ├── auth/        # Auth utilities (Clerk session helpers)
-│   │   └── db/          # Database client and schema (if using one)
-│   ├── components/      # Shared UI components
-│   └── hooks/           # Custom React hooks
-├── public/              # Static assets
-└── tests/               # Test files matching src/lib structure
+│   │   ├── ai/              # AI service layer, providers, normalization
+│   │   ├── cache/           # Knowledge cache implementation
+│   │   ├── auth/            # Auth utilities (Clerk session helpers)
+│   │   └── db/              # Database client and schema (if using one)
+│   ├── components/          # Shared UI components
+│   │   ├── ui/              # Primitives (shadcn-style)
+│   │   └── auth/            # Auth-related components (header, etc.)
+│   └── hooks/               # Custom React hooks (if any)
+├── public/                  # Static assets
+└── tests/                   # Test files matching src/lib structure
 ```
 
-**Rationale:** The App Router provides server-side rendering, streaming responses, and route-level API handlers in a single codebase. This is the standard Next.js pattern recommended by Vercel and aligns with ADR-001.
+**Rationale:** The App Router provides server-side rendering, streaming responses, and route-level API handlers in a single codebase. This is the standard Next.js pattern recommended by Vercel.
 
 ### 2. AI Service Layer — Provider Interface Pattern
 
@@ -78,7 +80,7 @@ interface KnowledgeCache {
 }
 ```
 
-**Rationale:** This abstraction (already captured in ADR-004) enables swapping providers without changing the frontend or business logic. For MVP, only `GeminiProvider` is implemented. The other two (`GroqProvider`, `OllamaProvider`) have stub implementations returning null/empty to verify the interface contract.
+**Rationale:** This abstraction (formalized as [ADR-0001](../../adr/0001-ai-provider-interface.md)) enables swapping providers without changing the frontend or business logic. For MVP, only `GeminiProvider` is implemented. The other two (`GroqProvider`, `OllamaProvider`) have stub implementations returning null/empty to verify the interface contract.
 
 ### 3. Cache Implementation — In-Memory with File Persistence Fallback
 
@@ -182,5 +184,5 @@ This is a greenfield project, so no migration plan applies. Deployment steps:
 
 1. **Should we use a real database from the start or wait until favorites grow?** — Decision: SQLite for MVP; upgrade path exists later.
 2. **What cache TTL should we set for expired entries?** — Decision: No TTL initially (cache lives forever unless cleared manually via Developer Mode). Can add TTL in future if needed.
-3. **Should Developer Mode be accessible to authenticated users only, or development environment only?** — Decision: Development environment only per ADR-006 intent.
+3. **Should Developer Mode be accessible to authenticated users only, or development environment only?** — Decision: Development environment only (Design Decision #6).
 4. **The existing architecture.md mentions a "Provider Manager" component separate from the interface pattern.** — This design merges Provider Manager into the service layer as a simple factory function (`createProvider(name)`). No new ADR needed; this is an implementation detail refinement.
