@@ -1,64 +1,63 @@
-# Tasks: Smart Otter MVP
+﻿# Tasks: Smart Otter MVP
 
 ## 1. Project Initialization
 
-- [ ] 1.1 Run `npx create-next-app@latest smart-otter --typescript --tailwind --app` to scaffold the Next.js application
-- [ ] 1.2 Initialize Tailwind CSS configuration and verify the dev server runs on `npm run dev`
-- [ ] 1.3 Install shadcn/ui with `npx shadcn@latest init` using default theme settings
-- [ ] 1.4 Add required base components: `Button`, `Input`, `Card`, `Tabs`, `Badge`, `Skeleton`, `Command`, `Dialog`, `DropdownMenu`
+- [x] 1.1 Run `npx create-next-app@latest smart-otter --typescript --tailwind --app` to scaffold the Next.js application
+- [x] 1.2 Initialize Tailwind CSS configuration and verify the dev server runs on `npm run dev`
+- [x] 1.3 Install shadcn/ui with `npx shadcn@latest init` using default theme settings
+- [x] 1.4 Add required base components: `Button`, `Input`, `Card`, `Tabs`, `Badge`, `Skeleton`, `Command`, `Dialog`, `DropdownMenu`
 
 ## 2. Clerk Authentication Setup
 
-- [ ] 2.1 Create Clerk application at dashboard.clerk.dev and obtain publishable/secret keys
-- [ ] 2.2 Add Clerk environment variables to `.env.local` (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`)
-- [ ] 2.3 Wrap the app with `<ClerkProvider>` in `app/layout.tsx` and configure middleware for auth route protection
-- [ ] 2.4 Implement sign-in/sign-out UI components using Clerk's React components (`SignIn`, `UserButton`, `SignedIn`, `SignedOut`)
-- [ ] 2.5 Verify email login, Google OAuth, and GitHub OAuth flows work in development mode
+- [ ] 2.1 Create Clerk application at dashboard.clerk.dev and obtain publishable/secret keys (requires manual action)
+- [x] 2.2 Add Clerk environment variables to `.env.local` (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) — placeholder values added, replace with real keys from step 2.1
+- [x] 2.3 Wrap the app with `<ClerkProvider>` in `app/layout.tsx` and configure middleware for auth route protection
+- [x] 2.4 Implement sign-in/sign-out UI components using Clerk's React components (`SignIn`, `UserButton`, `SignedIn`, `SignedOut`)
+- [ ] 2.5 Verify email login, Google OAuth, and GitHub OAuth flows work in development mode (requires real Clerk keys from step 2.1)
 
 ## 3. AI Service Layer — Provider Interface (ADR-0001)
 
-- [ ] 3.1 Define the `ProviderInterface` TypeScript interface with `name`, `search(query: string): Promise<RawResponse>`, and `NormalizedResponse` type
-- [ ] 3.2 Implement `GeminiProvider` using `@google/generative-ai` SDK, structured prompt for resource discovery, and JSON response parsing
-- [ ] 3.3 Create stub implementations for `GroqProvider` and `OllamaProvider` that return null/empty to verify interface compliance
-- [ ] 3.4 Implement the factory function `createProvider(name: string): ProviderInterface | null` with error handling for unknown providers
+- [x] 3.1 Define the `ProviderInterface` TypeScript interface with `name`, `search(query: string): Promise<RawResponse>`, and `NormalizedResponse` type
+- [x] 3.2 Implement `GeminiProvider` using `@google/generative-ai` SDK, structured prompt for resource discovery, and JSON response parsing
+- [x] 3.3 Create stub implementations for `GroqProvider` and `OllamaProvider` that return null/empty to verify interface compliance
+- [x] 3.4 Implement the factory function `createProvider(name: string): ProviderInterface | null` with error handling for unknown providers
 - [ ] 3.5 Write unit tests for each provider implementation verifying interface contract compliance
 
 ## 4. Knowledge Cache Implementation (Design Decision #3)
 
-- [ ] 4.1 Create the `KnowledgeCache` class with in-memory Map storage and file persistence fallback using Node.js `fs` module
-- [ ] 4.2 Implement cache key generation from search queries (lowercase, trimmed, slugified)
-- [ ] 4.3 Write unit tests for cache get/set/clear operations including file persistence round-trip
-- [ ] 4.4 Integrate cache into the service layer so cache hits bypass AI provider calls
+- [x] 4.1 Create the `KnowledgeCache` class with in-memory Map storage and file persistence fallback using Node.js `fs` module
+- [x] 4.2 Implement cache key generation from search queries (lowercase, trimmed, slugified)
+- [x] 4.3 Write unit tests for cache get/set/clear operations including file persistence round-trip
+- [x] 4.4 Integrate cache into the service layer so cache hits bypass AI provider calls
 
 ## 5. Service Layer Orchestration
 
-- [ ] 5.1 Implement the `searchService(query: string)` function that orchestrates cache lookup, provider invocation, normalization, and cache storage
-- [ ] 5.2 Add response normalization logic converting raw AI output into structured `NormalizedResponse` with categories (Tools, Communities, Learning Platforms, Documentation)
-- [ ] 5.3 Implement error handling for provider failures, network timeouts, and malformed responses with graceful degradation
-- [ ] 5.4 Write integration tests verifying the full pipeline: cache miss → provider call → normalization → cache store
+- [x] 5.1 Implement the `searchService(query: string)` function that orchestrates cache lookup, provider invocation, normalization, and cache storage
+- [x] 5.2 Add response normalization logic converting raw AI output into structured `NormalizedResponse` with categories (Tools, Communities, Learning Platforms, Documentation)
+- [x] 5.3 Implement error handling for provider failures, network timeouts, and malformed responses with graceful degradation
+- [x] 5.4 Write integration tests verifying the full pipeline: cache miss → provider call → normalization → cache store
 
 ## 6. Search Page — Frontend Implementation (Specs: search-and-discover, resource-categorization)
 
-- [ ] 6.1 Create `app/search/page.tsx` with a search form using shadcn Input and Button components
-- [ ] 6.2 Implement the server action or API route (`/api/search`) that calls the service layer and returns normalized results
-- [ ] 6.3 Build the resource display component showing categorized sections as tabs or collapsible accordions (shadcn Tabs + Collapsible)
-- [ ] 6.4 Add loading states with shadcn Skeleton components during AI response fetching
-- [ ] 6.5 Implement empty state and validation message when search query is empty or invalid
-- [ ] 6.6 Verify spec scenarios: search with cached results, uncached results, empty query handling
+- [x] 6.1 Create `app/search/page.tsx` with a search form using shadcn Input and Button components
+- [x] 6.2 Implement the server action or API route (`/api/search`) that calls the service layer and returns normalized results
+- [x] 6.3 Build the resource display component showing categorized sections as tabs or collapsible accordions (shadcn Tabs + Collapsible)
+- [x] 6.4 Add loading states with shadcn Skeleton components during AI response fetching
+- [x] 6.5 Implement empty state and validation message when search query is empty or invalid
+- [x] 3.6 Verify spec scenarios: search with cached results, uncached results, empty query handling
 
 ## 7. Developer Mode Panel (Design Decision #6)
-
-- [ ] 7.1 Create `app/dev/page.tsx` wrapped in a route group that returns null in production (`NODE_ENV !== 'development'`)
-- [ ] 7.2 Display cache hit/miss status, active provider name, and average request duration from recent searches
-- [ ] 7.3 Implement the "Clear Cache" button that calls the service layer's `cache.clear()` method with confirmation dialog
-- [ ] 7.4 Add developer mode toggle in settings to enable/disable the panel visibility without code changes
+- [x] 7.1 Create app/dev/page.tsx wrapped in a route group that returns null in production (NODE_ENV !== 'development')
+- [x] 7.2 Display cache hit/miss status, active provider name, and average request duration from recent searches
+- [x] 7.3 Implement the `Clear Cache` button that calls the service layer's cache.clear() method with confirmation dialog
+- [x] 7.4 Add developer mode toggle in settings to enable/disable the panel visibility without code changes
 
 ## 8. Data Persistence — SQLite Schema (ADR-0002)
 
-- [ ] 8.1 Install Better-SQLite3 and create the database client module (`src/lib/db/client.ts`) with connection pooling
-- [ ] 8.2 Write the schema migration script creating `users` and `favorites` tables with proper indexes
-- [ ] 8.3 Implement the repository layer (`src/lib/db/repositories/favorites.ts`) providing CRUD operations for favorites
-- [ ] 8.4 Create a startup script that initializes the database file and runs migrations if not already present
+- [x] 8.1 Install Better-SQLite3 and create the database client module (`src/lib/db/client.ts`) with connection pooling
+- [x] 8.2 Write the schema migration script creating `users` and `favorites` tables with proper indexes
+- [x] 8.3 Implement the repository layer (`src/lib/db/repositories/favorites.ts`) providing CRUD operations for favorites
+- [x] 8.4 Create a startup script that initializes the database file and runs migrations if not already present
 
 ## 9. Favorites Feature (Specs: favorites)
 
