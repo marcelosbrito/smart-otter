@@ -1,24 +1,36 @@
-# Smart Otter
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Smart Otter is a modern web platform that helps people quickly discover high-quality resources, tools, communities, and learning materials for any profession or technical domain. Instead of manually searching through dozens of fragmented websites, users receive structured, AI-curated knowledge hubs optimized with intelligent caching.
+## Getting Started
 
-## Tech Stack
+First, run the development server:
 
-- **Frontend:** Next.js (App Router) + Tailwind CSS + shadcn/ui
-- **Authentication:** Clerk (email + social login)
-- **AI Provider:** Google Gemini (free tier)
-- **Architecture:** Provider abstraction layer for future Groq/Ollama support
-- **Caching:** Cache-first strategy for performance and cost reduction
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## MVP Features
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- Search any profession or technical domain
-- AI-curated resources grouped into categories (Tools, Communities, Learning Platforms, Documentation)
-- Brief explanations for each recommended resource
-- Intelligent cache serving repeated searches instantly
-- User authentication with favorites organized by profession
-- Developer Mode panel showing provider status and performance metrics
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Project Status
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-MVP in development. See [openspec/changes/smart-otter-mvp/proposal.md](openspec/changes/smart-otter-mvp/proposal.md) for the full proposal.
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
