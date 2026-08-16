@@ -41,7 +41,7 @@ export async function getDb(): Promise<Database> {
 	runMigrations();
 	saveDb();
 	db = instance;
-	return db;
+	return instance;
 }
 
 export function runMigrations(): void {
