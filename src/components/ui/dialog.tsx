@@ -12,7 +12,7 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" render={<span role="button" aria-haspopup="dialog" tabIndex={0} />} {...props} />
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" nativeButton={false} render={<span role="button" aria-haspopup="dialog" tabIndex={0} />} {...props} />
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
