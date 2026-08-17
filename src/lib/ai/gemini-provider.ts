@@ -27,7 +27,7 @@ export class GeminiProvider implements ProviderInterface {
   readonly name = 'Gemini';
 
   async search(query: string): Promise<RawResponse> {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-flash-latest' });
     const result = await model.generateContent(`${SYSTEM_PROMPT}\n\nProfession or domain: ${query}`);
     const response = result.response;
     const text = response.candidates?.[0]?.content?.parts?.[0]?.toString() || '';

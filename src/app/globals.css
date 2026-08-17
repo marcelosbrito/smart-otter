@@ -127,4 +127,14 @@
   html {
     @apply font-sans;
   }
+  :focus-visible {
+    @apply ring-2 ring-primary ring-offset-2 outline-none;
+  }
+}
+
+@media (max-width: 640px) {
+  .max-w-3xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

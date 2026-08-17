@@ -1,8 +1,11 @@
 import { cache } from '../cache/knowledge-cache';
 import { createProvider } from './factory';
+import { getKnowledgeBaseResponse } from './knowledge-base';
 import type { RawResponse, NormalizedResponse } from './provider';
 
 const DEFAULT_CATEGORIES = ['Tools', 'Communities', 'LearningPlatforms', 'Documentation'];
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 1500;
 
 export interface SearchMetrics {
   provider: string;
@@ -50,25 +53,48 @@ export async function searchService(
       throw new Error(`Unknown AI provider: ${providerName}`);
     }
 
-    const rawResponse = await provider.search(query);
-    const normalized = normalizeRawResponse(rawResponse);
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const rawResponse = await provider.search(query);
+        const normalized = normalizeRawResponse(rawResponse);
+        cache.set(query, normalized);
+        return {
+          response: normalized,
+          metrics: { provider: provider.name, cacheHit: false, durationMs: Date.now() - startTime },
+        };
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        if (attempt < MAX_RETRIES - 1) {
+          await new Promise(r => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
+        }
+      }
+    }
 
-    cache.set(query, normalized);
-
-    return {
-      response: normalized,
-      metrics: { provider: provider.name, cacheHit: false, durationMs: Date.now() - startTime },
-    };
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Unknown AI provider')) {
-      throw error;
+    const kbResponse = getKnowledgeBaseResponse(query);
+    if (kbResponse) {
+      const normalized = normalizeRawResponse(kbResponse);
+      cache.set(query, normalized);
+      return {
+        response: normalized,
+        metrics: { provider: 'knowledge-base', cacheHit: false, durationMs: Date.now() - startTime, error: `AI unavailable after ${MAX_RETRIES} attempts — fallback to knowledge base` },
+      };
     }
 
     const cachedFallback = cache.get(query);
     if (cachedFallback) {
-      return { response: cachedFallback, metrics: { provider: providerName, cacheHit: true, durationMs: Date.now() - startTime, error: 'Provider failed, served from cache' } };
+      return { response: cachedFallback, metrics: { provider: providerName, cacheHit: true, durationMs: Date.now() - startTime, error: `Search failed after ${MAX_RETRIES} attempts` } };
     }
 
+    throw new Error(`Search failed: ${lastError?.message || 'Unknown error'}`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Unknown AI provider')) {
+      throw error;
+    }
+    const cachedFallback = cache.get(query);
+    if (cachedFallback) {
+      return { response: cachedFallback, metrics: { provider: providerName, cacheHit: true, durationMs: Date.now() - startTime, error: 'Provider failed, served from cache' } };
+    }
     throw new Error(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

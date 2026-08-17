@@ -3,8 +3,5 @@ import { clerkMiddleware } from '@clerk/nextjs/server';
 export default clerkMiddleware();
 
 export const config = {
-  matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(ong)?|.ico|png|jpg|jpeg)|.*\\.svg$)).*',
-    '/(?:api|trpc)(.*)',
-  ],
+  matcher: ['/(api|trpc)(.*)', '/__clerk/:path*'],
 };

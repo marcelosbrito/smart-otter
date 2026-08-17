@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from '@/components/auth/header';
 import DevPage from '@/app/dev/page';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,6 +21,8 @@ export const metadata: Metadata = {
   description: "Discover curated resources for any profession or technical domain using AI-powered search.",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <ClerkProvider>
@@ -29,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       >
         <body className="min-h-full flex flex-col">
           <Header />
-          <main className="flex-1">{children}</main>
+          <ErrorBoundary>{children}</ErrorBoundary>
           {process.env.NODE_ENV === 'development' && <DevPage />}
         </body>
       </html>

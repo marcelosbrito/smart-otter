@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { RawResponse } from '../../src/lib/ai/provider';
 
 describe('Search Service Integration', () => {
@@ -20,7 +20,7 @@ describe('Search Service Integration', () => {
     const createProviderMock = vi.fn().mockReturnValue({ name: 'Gemini', search: vi.fn().mockResolvedValue(mockRawResponse) });
     vi.doMock('../../src/lib/ai/factory', () => ({ createProvider: createProviderMock, GeminiProvider: class {}, GroqProvider: class {}, OllamaProvider: class {} }));
 
-    const cacheModule = await vi.importActual('../../src/lib/cache/knowledge-cache');
+    const cacheModule = await vi.importActual('../../src/lib/cache/knowledge-cache') as any;
     const { searchService } = await import('../../src/lib/ai/service');
 
     cacheModule.cache.clear();
@@ -42,7 +42,7 @@ describe('Search Service Integration', () => {
   it('should handle unknown provider gracefully', async () => {
     vi.doMock('../../src/lib/ai/factory', () => ({ createProvider: () => null, GeminiProvider: class {}, GroqProvider: class {}, OllamaProvider: class {} }));
 
-    const cacheModule = await vi.importActual('../../src/lib/cache/knowledge-cache');
+    const cacheModule = await vi.importActual('../../src/lib/cache/knowledge-cache') as any;
     const { searchService } = await import('../../src/lib/ai/service');
 
     cacheModule.cache.clear();
@@ -53,7 +53,7 @@ describe('Search Service Integration', () => {
   it('should return normalized response when provider returns empty categories', async () => {
     vi.doMock('../../src/lib/ai/factory', () => ({ createProvider: () => ({ name: 'Gemini', search: vi.fn().mockResolvedValue({ profession: '', categories: {} }) }), GeminiProvider: class {}, GroqProvider: class {}, OllamaProvider: class {} }));
 
-    const cacheModule = await vi.importActual('../../src/lib/cache/knowledge-cache');
+    const cacheModule = await vi.importActual('../../src/lib/cache/knowledge-cache') as any;
     const { searchService } = await import('../../src/lib/ai/service');
 
     cacheModule.cache.clear();
