@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const trimmedQuery = query.trim();
-    const result = await searchService(trimmedQuery, provider || 'gemini');
+    const result = await searchService(trimmedQuery, provider || 'groq');
 
     return NextResponse.json({ response: result.response, metrics: result.metrics });
   } catch (error) {

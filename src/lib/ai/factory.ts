@@ -1,9 +1,8 @@
-import { GeminiProvider } from './gemini-provider';
-import { GroqProvider, OllamaProvider } from './stubs';
+import { GroqProvider } from './groq-provider';
+import { OllamaProvider } from './ollama-provider';
 import type { ProviderInterface } from './provider';
 
 const providers: Record<string, new () => ProviderInterface> = {
-  gemini: GeminiProvider,
   groq: GroqProvider,
   ollama: OllamaProvider,
 };
@@ -20,4 +19,4 @@ export function createProvider(name: string): ProviderInterface | null {
   }
 }
 
-export { GeminiProvider, GroqProvider, OllamaProvider };
+export { GroqProvider, OllamaProvider };

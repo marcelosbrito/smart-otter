@@ -1,6 +1,5 @@
 import { cache } from '../cache/knowledge-cache';
 import { createProvider } from './factory';
-import { getKnowledgeBaseResponse } from './knowledge-base';
 import type { RawResponse, NormalizedResponse } from './provider';
 
 const DEFAULT_CATEGORIES = ['Tools', 'Communities', 'LearningPlatforms', 'Documentation'];
@@ -36,57 +35,66 @@ interface Resource {
 
 export async function searchService(
   query: string,
-  providerName = 'gemini'
+  providerName = 'groq'
 ): Promise<{ response: NormalizedResponse | null; metrics: SearchMetrics }> {
   const startTime = Date.now();
+  let errorChain: string[] = [];
 
   try {
     const cached = cache.get(query);
     if (cached) {
-      return { response: cached, metrics: { provider: providerName, cacheHit: true, durationMs: Date.now() - startTime } };
+      return { response: cached, metrics: { provider: 'Cache', cacheHit: true, durationMs: Date.now() - startTime } };
     }
+  } catch {}
 
-    const provider = createProvider(providerName);
-    if (!provider) {
-      throw new Error(`Unknown AI provider: ${providerName}`);
-    }
+  let rawResponse: RawResponse | null = null;
 
+  if (process.env.GROQ_API_KEY) {
     try {
-      const rawResponse = await provider.search(query);
-      const normalized = normalizeRawResponse(rawResponse);
-      cache.set(query, normalized);
-      return {
-        response: normalized,
-        metrics: { provider: provider.name, cacheHit: false, durationMs: Date.now() - startTime },
-      };
+      const groqProvider = createProvider('groq');
+      if (groqProvider) {
+        rawResponse = await groqProvider.search(query);
+        console.info('[searchService] Groq provider succeeded.');
+      }
     } catch (err) {
-      const lastError = err instanceof Error ? err : new Error(String(err));
-
-      const kbResponse = getKnowledgeBaseResponse(query);
-      if (kbResponse) {
-        const normalized = normalizeRawResponse(kbResponse);
-        cache.set(query, normalized);
-        return {
-          response: normalized,
-          metrics: { provider: 'knowledge-base', cacheHit: false, durationMs: Date.now() - startTime, error: `AI unavailable — fallback to knowledge base` },
-        };
-      }
-
-      const cachedFallback = cache.get(query);
-      if (cachedFallback) {
-        return { response: cachedFallback, metrics: { provider: providerName, cacheHit: true, durationMs: Date.now() - startTime, error: lastError.message } };
-      }
-
-      throw new Error(`Search failed: ${lastError.message}`);
+      const groqError = err instanceof Error ? err.message : String(err);
+      errorChain.push(`Groq: ${groqError}`);
+      console.warn(`[searchService] Groq provider failed:`, groqError);
     }
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Unknown AI provider')) {
-      throw error;
+  }
+
+  if (!rawResponse && process.env.OLLAMA_BASE_URL) {
+    try {
+      const ollamaProvider = createProvider('ollama');
+      if (ollamaProvider) {
+        rawResponse = await ollamaProvider.search(query);
+        console.info('[searchService] Ollama provider succeeded.');
+      }
+    } catch (err) {
+      const ollamaError = err instanceof Error ? err.message : String(err);
+      errorChain.push(`Ollama: ${ollamaError}`);
+      console.warn(`[searchService] Ollama provider failed:`, ollamaError);
     }
+  }
+
+  if (!rawResponse) {
     const cachedFallback = cache.get(query);
     if (cachedFallback) {
-      return { response: cachedFallback, metrics: { provider: providerName, cacheHit: true, durationMs: Date.now() - startTime, error: 'Provider failed, served from cache' } };
+      return { response: cachedFallback, metrics: { provider: 'Cache', cacheHit: true, durationMs: Date.now() - startTime, error: 'All AI providers unavailable — served from cache' } };
     }
-    throw new Error(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Search failed after trying all providers: ${errorChain.join(' | ')}`);
   }
+
+  const normalized = normalizeRawResponse(rawResponse);
+  cache.set(query, normalized);
+
+  return {
+    response: normalized,
+    metrics: {
+      provider: errorChain.length > 0 ? 'Fallback' : rawResponse.profession ? (providerName === 'groq' ? 'Groq' : 'Ollama') : 'Unknown',
+      cacheHit: false,
+      durationMs: Date.now() - startTime,
+      error: errorChain.length > 0 ? `Providers tried: ${errorChain.join(', ')}` : undefined,
+    },
+  };
 }

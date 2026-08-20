@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp, Search as SearchIcon, AlertCircle, BookmarkPlus, Bookmark } from 'lucide-react';
+import { ChevronDown, Search as SearchIcon, AlertCircle, BookmarkPlus, Bookmark } from 'lucide-react';
 
 type Resource = { name: string; url: string; explanation: string };
 type NormalizedResponse = { profession: string; tools: Resource[]; communities: Resource[]; learningPlatforms: Resource[]; documentation: Resource[] };
@@ -129,8 +129,8 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12" role="main">
-      <h1 className="text-2xl font-bold mb-6">Search Resources</h1>
+    <div className="max-w-4xl mx-auto px-6 py-12" role="main">
+      <h1 className="text-3xl font-bold mb-8">Search Resources</h1>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-8" aria-label="Resource search form">
         <Input
@@ -160,11 +160,14 @@ export default function SearchPage() {
 
       {loading && (
         <div role="status" aria-busy="true" className="space-y-6">
-          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-8 w-48 animate-pulse" />
           {[1, 2, 3].map((i) => (
-            <Card key={i}>
+            <Card key={i} className="animate-pulse">
               <CardContent className="p-4 space-y-3">
-                <Skeleton className="h-5 w-32" />
+                <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                  <Skeleton className="h-5 w-1/2" />
+                  <Badge variant="secondary" className="text-xs"><Skeleton className="w-16 h-4 rounded-full" /></Badge>
+                </div>
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
               </CardContent>
@@ -175,46 +178,61 @@ export default function SearchPage() {
 
       {hasResults && results && (
         <>
-          <p aria-label={`Results for ${results.profession}`} className="text-sm text-muted-foreground mb-4">
-            Results for &ldquo;{results.profession}&rdquo; — {metrics?.cacheHit ? 'Cached' : 'Fresh'} ({metrics?.durationMs}ms, {metrics?.provider})
+          <p aria-label={`Results for ${results.profession}`} className="text-sm text-muted-foreground mb-6 flex items-center gap-2">
+            Results for &ldquo;{results.profession}&rdquo; —{' '}
+            <Badge variant="outline" className="font-normal">{metrics?.provider}</Badge>
+            {metrics && (
+              <>
+                <span className="text-muted-foreground/60">·</span>
+                <span>{metrics.cacheHit ? 'Cached' : 'Fresh'}</span>
+                <span className="text-muted-foreground/60">·</span>
+                <span>{metrics.durationMs}ms</span>
+              </>
+            )}
           </p>
 
-          <div role="search" className="space-y-3 mb-6">
+          <div role="search" className="space-y-4 mb-6">
             {CATEGORIES.map((cat) => {
               const items = results[cat.key as keyof NormalizedResponse] as Resource[] | undefined;
               if (!items || items.length === 0) return null;
 
               return (
                 <Collapsible key={cat.key}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg border bg-background hover:bg-accent transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none">
-                    <span className="font-medium">{cat.label} ({items.length})</span>
-                    {cat.label === 'Tools' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-xl border bg-background hover:bg-secondary/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none">
+                    <span className="font-semibold text-base">{cat.label} ({items.length})</span>
+                    <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform duration-200" />
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2 space-y-2">
+                  <CollapsibleContent className="mt-3 space-y-2">
                     {items.map((item, idx) => (
-                      <Card key={idx}>
+                      <Card
+                        key={idx}
+                        className="group hover:shadow-md transition-all duration-200 animate-in fade-in fill-mode-forwards"
+                        style={{ animationDelay: `${idx * 75}ms`, animationDuration: '300ms' }}
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                             <div>
                               <a href={item.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">{item.name}</a>
-                              <p className="text-sm text-muted-foreground mt-1">{item.explanation}</p>
+                              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{item.explanation}</p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">{cat.label.replace(' ', '')}</Badge>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => handleSaveFavorite(item.name, cat.key as string, item.explanation)}
-                                aria-label={savedFavorites.has(item.name) ? `${item.name} saved to favorites` : `Save ${item.name} to favorites`}
-                              >
-                                {savedFavorites.has(item.name) ? (
-                                  <Bookmark className="w-4 h-4 fill-current text-primary" />
-                                ) : (
-                                  <BookmarkPlus className="w-4 h-4" />
-                                )}
-                              </Button>
-                            </div>
+                              <div className="flex items-center gap-2">
+                               <Badge variant="secondary" className="text-xs capitalize rounded-full">{cat.label.replace(' ', '').replace(/([A-Z])/g, ' $1')}</Badge>
+                               {isAuthenticated ? (
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   onClick={() => handleSaveFavorite(item.name, cat.key as string, item.explanation)}
+                                   aria-label={savedFavorites.has(item.name) ? `${item.name} saved to favorites` : `Save ${item.name} to favorites`}
+                                 >
+                                   {savedFavorites.has(item.name) ? (
+                                     <Bookmark className="w-4 h-4 fill-current text-primary" />
+                                   ) : (
+                                     <BookmarkPlus className="w-4 h-4" />
+                                   )}
+                                 </Button>
+                               ) : null}
+                             </div>
                           </div>
                         </CardContent>
                       </Card>

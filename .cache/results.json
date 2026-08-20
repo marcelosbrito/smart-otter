@@ -1,9 +1,153 @@
 {
-  "unknown-domain": {
-    "profession": "Unknown",
-    "tools": [],
+  "frontend-developer": {
+    "profession": "Frontend Developer",
+    "tools": [
+      {
+        "name": "VS Code",
+        "url": "https://code.visualstudio.com",
+        "explanation": "Industry standard editor"
+      }
+    ],
     "communities": [],
     "learningPlatforms": [],
     "documentation": []
+  },
+  "seo-manager": {
+    "profession": "SEO Manager",
+    "tools": [
+      {
+        "name": "Ahrefs",
+        "url": "https://ahrefs.com",
+        "explanation": "A comprehensive toolset for keyword research, backlink analysis, and content optimization."
+      },
+      {
+        "name": "SEMrush",
+        "url": "https://www.semrush.com",
+        "explanation": "A suite of tools for technical SEO audits, competitor analysis, and keyword research."
+      }
+    ],
+    "communities": [
+      {
+        "name": "SEMrush Community",
+        "url": "https://community.semrush.com/",
+        "explanation": "A forum for discussing SEO strategies, sharing knowledge, and staying updated on industry news."
+      },
+      {
+        "name": "Moz Community",
+        "url": "https://community.moz.com/",
+        "explanation": "A platform for SEO professionals to connect, share ideas, and learn from each other."
+      }
+    ],
+    "learningPlatforms": [
+      {
+        "name": "Udemy - Digital Marketing Courses",
+        "url": "https://www.udemy.com/course/digital-marketing/",
+        "explanation": "A wide range of courses on digital marketing, including SEO, covering various topics and skill levels."
+      },
+      {
+        "name": "HubSpot Academy",
+        "url": "https://academy.hubspot.com/",
+        "explanation": "A free training platform offering courses on inbound marketing, sales, and customer service, including SEO fundamentals."
+      }
+    ],
+    "documentation": [
+      {
+        "name": "Google Analytics Documentation",
+        "url": "https://support.google.com/analytics",
+        "explanation": "Official documentation on Google Analytics, covering metrics, reports, and tracking codes for webmasters."
+      },
+      {
+        "name": "Google Search Console Documentation",
+        "url": "https://support.google.com/webmasters",
+        "explanation": "Official documentation on Google Search Console, covering settings, reports, and troubleshooting for webmasters."
+      }
+    ]
+  },
+  "data-engineer": {
+    "profession": "Data Engineer",
+    "tools": [
+      {
+        "name": "Apache Beam",
+        "url": "https://beam.apache.org/",
+        "explanation": "A unified programming model for both batch and streaming data processing"
+      },
+      {
+        "name": "Dask",
+        "url": "https://dask.org/",
+        "explanation": "A flexible, parallel computing library for analytics and machine learning"
+      }
+    ],
+    "communities": [
+      {
+        "name": "Data Engineering subreddit",
+        "url": "https://www.reddit.com/r/dataengineering/",
+        "explanation": "A community for data engineers to share knowledge and best practices"
+      },
+      {
+        "name": "Data Engineering Slack community",
+        "url": "https://dataengineering.slack.com/",
+        "explanation": "A community for data engineers to discuss various topics and ask questions"
+      }
+    ],
+    "learningPlatforms": [
+      {
+        "name": "DataCamp",
+        "url": "https://www.datacamp.com/",
+        "explanation": "An online learning platform offering courses and tutorials on data science and engineering"
+      },
+      {
+        "name": "Coursera - Data Science Specialization",
+        "url": "https://www.coursera.org/specializations/data-science",
+        "explanation": "A specialization course series on data science from University of Michigan"
+      }
+    ],
+    "documentation": [
+      {
+        "name": "Apache Kafka documentation",
+        "url": "https://kafka.apache.org/docs/",
+        "explanation": "Official documentation for Apache Kafka, a popular data processing platform"
+      },
+      {
+        "name": "AWS Data Engineering documentation",
+        "url": "https://docs.aws.amazon.com/ AmazonElasticMapReduce/latest/UG/data-engineering.html",
+        "explanation": "Official documentation for AWS data engineering services"
+      }
+    ]
+  },
+  "game-developer": {
+    "profession": "Game Developer",
+    "tools": [
+      {
+        "name": "Unity",
+        "url": "https://unity.com/",
+        "explanation": "A popular game engine for 2D and 3D game development."
+      },
+      {
+        "name": "Unreal Engine",
+        "url": "https://www.unrealengine.com/",
+        "explanation": "A powerful game engine for high-performance, visually stunning games."
+      }
+    ],
+    "communities": [
+      {
+        "name": "GameDev.net",
+        "url": "https://www.gamedev.net/",
+        "explanation": "A large community of game developers sharing knowledge, resources, and projects."
+      }
+    ],
+    "learningPlatforms": [
+      {
+        "name": "Udemy - Game Development Courses",
+        "url": "https://www.udemy.com/course/game-development/",
+        "explanation": "A wide range of game development courses to learn the fundamentals and advanced skills."
+      }
+    ],
+    "documentation": [
+      {
+        "name": "Unity Documentation",
+        "url": "https://docs.unity3d.com/",
+        "explanation": "Official documentation for Unity, covering game development, scripting, and more."
+      }
+    ]
   }
 }

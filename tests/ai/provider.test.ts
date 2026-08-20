@@ -1,19 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { createProvider, GroqProvider, OllamaProvider } from '../../src/lib/ai/factory';
-import { GeminiProvider } from '../../src/lib/ai/gemini-provider';
-import type { ProviderInterface, RawResponse } from '../../src/lib/ai/provider';
+import type { ProviderInterface } from '../../src/lib/ai/provider';
 
 describe('Provider Interface', () => {
-  it('should define a valid ProviderInterface contract', async () => {
+  it('should define a valid GroqProvider contract', async () => {
     const provider = new GroqProvider();
     expect(provider).toHaveProperty('name');
     expect(typeof provider.name).toBe('string');
     expect(typeof provider.search).toBe('function');
 
-    const result = await provider.search('test query');
-    expect(result).toBeDefined();
-    expect(result).toHaveProperty('profession');
-    expect(result).toHaveProperty('categories');
+    await expect(provider.search('test query')).rejects.toThrow(/GROQ_API_KEY is not set/i);
   });
 
   it('GroqProvider should return name "Groq"', () => {
@@ -26,32 +22,29 @@ describe('Provider Interface', () => {
     expect(provider.name).toBe('Ollama');
   });
 
-  it('stub providers should return empty RawResponse', async () => {
+  it('GroqProvider should throw when GROQ_API_KEY is not set', async () => {
     const groq = new GroqProvider();
+    await expect(groq.search('any query')).rejects.toThrow(/GROQ_API_KEY is not set/i);
+  });
+
+  it('OllamaProvider should throw when OLLAMA_BASE_URL is unreachable', async () => {
     const ollama = new OllamaProvider();
-
-    const groqResult = await groq.search('any query');
-    expect(groqResult.profession).toBe('');
-    expect(Object.keys(groqResult.categories)).toHaveLength(0);
-
-    const ollamaResult = await ollama.search('any query');
-    expect(ollamaResult.profession).toBe('');
-    expect(Object.keys(ollamaResult.categories)).toHaveLength(0);
+    await expect(ollama.search('any query')).rejects.toThrow(/Failed to connect|Ollama API returned/i);
   });
 });
 
 describe('createProvider factory', () => {
-  it('should create a GeminiProvider for "gemini"', () => {
-    const provider = createProvider('gemini');
-    expect(provider).toBeInstanceOf(GeminiProvider);
+  it('should create a GroqProvider for "groq"', () => {
+    const provider = createProvider('groq');
+    expect(provider).toBeInstanceOf(GroqProvider);
     if (provider) {
-      expect(provider.name).toBe('Gemini');
+      expect(provider.name).toBe('Groq');
     }
   });
 
   it('should be case-insensitive', () => {
-    const upper = createProvider('GEMINI');
-    const lower = createProvider('gemini');
+    const upper = createProvider('GROQ');
+    const lower = createProvider('groq');
     expect(upper?.name).toBe(lower?.name);
   });
 
@@ -61,21 +54,49 @@ describe('createProvider factory', () => {
     expect(createProvider('anthropic')).toBeNull();
   });
 
-  it('GroqProvider and OllamaProvider should implement ProviderInterface', async () => {
-    const groq = createProvider('groq');
-    const ollama = createProvider('ollama');
+  it('GroqProvider and OllamaProvider should be instantiable and throw on search without env vars', async () => {
+    const originalGrok = process.env.GROQ_API_KEY;
+    const originalOllama = process.env.OLLAMA_BASE_URL;
 
-    if (groq && ollama) {
-      expect(groq).toBeInstanceOf(GroqProvider);
-      expect(ollama).toBeInstanceOf(OllamaProvider);
+    try {
+      delete process.env.GROQ_API_KEY;
+      delete process.env.OLLAMA_BASE_URL;
 
-      const groqResult: RawResponse = await groq.search('test');
-      expect(groqResult.profession).toBeDefined();
-      expect(groqResult.categories).toBeDefined();
+      const groq = createProvider('groq');
+      const ollama = createProvider('ollama');
 
-      const ollamaResult: RawResponse = await ollama.search('test');
-      expect(ollamaResult.profession).toBeDefined();
-      expect(ollamaResult.categories).toBeDefined();
+      if (groq) {
+        expect(groq).toBeInstanceOf(GroqProvider);
+        await expect(groq.search('test')).rejects.toThrow(/GROQ_API_KEY is not set/i);
+      } else {
+        throw new Error('Expected GroqProvider to be created');
+      }
+
+      if (ollama) {
+        expect(ollama).toBeInstanceOf(OllamaProvider);
+        await expect(ollama.search('test')).rejects.toThrow(/Failed to connect|Ollama API returned/i);
+      } else {
+        throw new Error('Expected OllamaProvider to be created');
+      }
+    } finally {
+      process.env.GROQ_API_KEY = originalGrok;
+      process.env.OLLAMA_BASE_URL = originalOllama;
+    }
+  });
+
+  it('should return provider instances even without env vars (lazy validation)', () => {
+    const originalGrok = process.env.GROQ_API_KEY;
+    const originalOllama = process.env.OLLAMA_BASE_URL;
+
+    try {
+      delete process.env.GROQ_API_KEY;
+      delete process.env.OLLAMA_BASE_URL;
+
+      expect(createProvider('groq')).toBeInstanceOf(GroqProvider);
+      expect(createProvider('ollama')).toBeInstanceOf(OllamaProvider);
+    } finally {
+      if (originalGrok) process.env.GROQ_API_KEY = originalGrok;
+      if (originalOllama) process.env.OLLAMA_BASE_URL = originalOllama;
     }
   });
 });

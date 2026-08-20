@@ -1,18 +1,21 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 import initSqlJs, { Database } from 'sql.js';
 
 const DB_PATH = path.join(process.cwd(), '.data', 'smart-otter.db');
+const WASM_PATH = path.join(process.cwd(), '.data', 'sql-wasm.wasm');
 
 let SQL: any;
 let db: Database | null = null;
 
 async function initJs(): Promise<any> {
-	if (!SQL) {
-		const init = await initSqlJs();
-		SQL = init;
-		return SQL;
-	}
+	if (SQL) return SQL;
+
+	const wasmData = await fsp.readFile(WASM_PATH);
+	const wasmBuffer = new Uint8Array(wasmData).buffer as ArrayBuffer;
+
+	const init = await initSqlJs({ wasmBinary: wasmBuffer });
+	SQL = init;
 	return SQL;
 }
 
@@ -21,17 +24,24 @@ export async function getDb(): Promise<Database> {
 		return db;
 	}
 
-	await initJs();
+	try {
+		await initJs();
+	} catch (err) {
+		console.error('[getDb] Initialization error:', err);
+		throw err;
+	}
 
 	const dir = path.dirname(DB_PATH);
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, { recursive: true });
+	try {
+		await fsp.mkdir(dir, { recursive: true });
+	} catch (err) {
+		console.warn('[getDb] Could not create data directory:', err);
 	}
 
 	let dbBuffer: Uint8Array;
 
-	if (fs.existsSync(DB_PATH)) {
-		const fileData = fs.readFileSync(DB_PATH);
+	if (await fsp.access(DB_PATH).then(() => true).catch(() => false)) {
+		const fileData = await fsp.readFile(DB_PATH);
 		dbBuffer = new Uint8Array(fileData);
 	} else {
 		dbBuffer = new Uint8Array();
@@ -82,13 +92,13 @@ export function saveDb(): void {
 	if (!db) return;
 
 	const dir = path.dirname(DB_PATH);
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, { recursive: true });
-	}
+	fsp.mkdir(dir, { recursive: true }).catch(() => {});
 
 	const data = db.export();
 	const buffer = Buffer.from(data);
-	fs.writeFileSync(DB_PATH, buffer);
+	fsp.writeFile(DB_PATH, buffer).catch((err) => {
+		console.error('[saveDb] Failed to write DB:', err);
+	});
 }
 
 export async function closeDb(): Promise<void> {

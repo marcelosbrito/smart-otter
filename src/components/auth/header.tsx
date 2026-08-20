@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ClientAuth from './client-auth';
+import ThemeToggle from '@/components/ui/theme-toggle';
 
 export default function Header() {
   return (
@@ -8,11 +9,11 @@ export default function Header() {
         <Link href="/" className="font-bold text-lg tracking-tight">
           Smart Otter
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex items-center gap-2 text-sm">
           <Link href="/search" className="text-muted-foreground hover:text-foreground transition-colors">
             Search
           </Link>
-          <ClientAuth />
+          <ThemeToggle />
         </nav>
       </div>
 
