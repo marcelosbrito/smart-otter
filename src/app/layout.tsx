@@ -2,7 +2,6 @@ import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from '@/components/auth/header';
-import DevPage from '@/app/dev/page';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import ThemeWrapperClient from '@/components/ui/theme-wrapper-client';
 import "./globals.css";
@@ -35,7 +34,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ThemeWrapperClient>
             <Header />
             <ErrorBoundary>{children}</ErrorBoundary>
-            {process.env.NODE_ENV === 'development' && <DevPage />}
           </ThemeWrapperClient>
         </body>
       </html>

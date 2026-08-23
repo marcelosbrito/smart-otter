@@ -20,8 +20,8 @@ export class OllamaProvider implements ProviderInterface {
 
   async search(query: string): Promise<RawResponse> {
     const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-    // Default to llama3 as a stable fallback; use OLLAMA_MODEL env var (e.g., llama3.2) for production.
-    const model = process.env.OLLAMA_MODEL || 'llama3';
+    // Use OLLAMA_MODEL env var (e.g., llama3.2); falls back to llama3.2 for better quality.
+    const model = process.env.OLLAMA_MODEL || 'llama3.2';
 
     let res: Response;
     try {

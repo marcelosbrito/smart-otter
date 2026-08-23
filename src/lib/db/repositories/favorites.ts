@@ -1,128 +1,135 @@
-import { getDb, saveDb } from '../client';
+import { createSupabaseServerClient } from '../supabase-server';
 
 export interface Favorite {
-	id: number;
-	user_id: string;
-	profession: string;
-	resource_name: string;
-	resource_url: string;
-	category: string;
-	explanation: string | null;
-	created_at: string;
+  id: number;
+  user_id: string;
+  profession: string;
+  resource_name: string;
+  resource_url: string;
+  category: string;
+  explanation: string | null;
+  created_at: string;
 }
 
 export async function saveFavorite(
-	clerkId: string,
-	profession: string,
-	resourceName: string,
-	resourceUrl: string,
-	category: string,
-	explanation?: string
+  clerkId: string,
+  profession: string,
+  resourceName: string,
+  resourceUrl: string,
+  category: string,
+  explanation?: string
 ): Promise<Favorite> {
-	const db = await getDb();
+  const supabase = createSupabaseServerClient();
 
-	const userRows = db.exec(`SELECT id FROM users WHERE clerk_id = ?`, [clerkId]);
-	if (userRows.length === 0 || !userRows[0]) {
-		db.run(`INSERT INTO users (clerk_id) VALUES (?)`, [clerkId]);
-	}
+  try {
+    console.log('[favorites] Checking user:', clerkId);
+    const { data: existingUser, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('clerk_id', clerkId)
+      .single();
 
-	const result = db.run(
-		`INSERT INTO favorites (user_id, profession, resource_name, resource_url, category, explanation) 
-		 VALUES (?, ?, ?, ?, ?, ?)`,
-		[clerkId, profession, resourceName, resourceUrl, category, explanation || null]
-	);
+    if (userError) {
+      console.error('[favorites] User check error:', userError);
+    }
 
-	saveDb();
+    let userId: string | null = existingUser?.id ?? null;
 
-	const maxRows = db.exec(`SELECT MAX(id) as last_id FROM favorites`);
-	const lastId = (maxRows[0]?.values?.[0] as number[])?.[0] || 0;
-	const rows = db.exec(
-		`SELECT id, user_id, profession, resource_name, resource_url, category, explanation, created_at 
-		 FROM favorites WHERE id = ?`,
-		[lastId]
-	);
+    if (!userId) {
+      console.log('[favorites] Creating new user');
+      const insertResult = await supabase.from('users').insert({ clerk_id: clerkId }).select().single();
+      console.log('[favorites] User insert result:', JSON.stringify(insertResult));
+      userId = insertResult?.data?.id ?? null;
+    }
 
-	if (!rows[0] || !rows[0].values) {
-		throw new Error('Failed to retrieve saved favorite');
-	}
+    if (!userId) {
+      throw new Error('Failed to get user ID');
+    }
 
-	const row = rows[0].values[0];
-	return {
-		id: row![0] as number,
-		user_id: row![1] as string,
-		profession: row![2] as string,
-		resource_name: row![3] as string,
-		resource_url: row![4] as string,
-		category: row![5] as string,
-		explanation: row![6] as string | null,
-		created_at: row![7] as string,
-	};
+    console.log('[favorites] Inserting favorite for user:', userId, 'resource:', resourceName);
+    const { data, error } = await supabase
+      .from('favorites')
+      .insert({
+        user_id: userId,
+        profession,
+        resource_name: resourceName,
+        resource_url: resourceUrl,
+        category,
+        explanation: explanation || null,
+      })
+      .select()
+      .single();
+
+    console.log('[favorites] Insert result:', JSON.stringify({ data, error }));
+
+    if (error) {
+      throw new Error(`Failed to save favorite: ${error.message} (${error.code})`);
+    }
+
+    return data as Favorite;
+  } catch (err) {
+    console.error('[favorites] saveFavorite error:', err);
+    throw err;
+  }
 }
 
 export async function removeFavorite(favoriteId: number): Promise<boolean> {
-	const db = await getDb();
+  const supabase = createSupabaseServerClient();
 
-	db.run(`DELETE FROM favorites WHERE id = ?`, [favoriteId]);
-	saveDb();
+  const { error } = await supabase
+    .from('favorites')
+    .delete()
+    .eq('id', favoriteId);
 
-	return true;
+  if (error) {
+    throw new Error(`Failed to remove favorite: ${error.message}`);
+  }
+
+  return true;
 }
 
 export async function getFavorites(clerkId: string, profession?: string): Promise<Favorite[]> {
-	const db = await getDb();
+  const supabase = createSupabaseServerClient();
 
-	let sql = `SELECT id, user_id, profession, resource_name, resource_url, category, explanation, created_at 
-			   FROM favorites WHERE user_id = ?`;
-	const params: any[] = [clerkId];
+  let query = supabase
+    .from('favorites')
+    .select('*')
+    .eq('user_id', clerkId)
+    .order('profession')
+    .order('created_at', { ascending: false });
 
-	if (profession) {
-		sql += ` AND profession = ?`;
-		params.push(profession);
-	}
+  if (profession) {
+    query = query.eq('profession', profession);
+  }
 
-	sql += ` ORDER BY profession, created_at DESC`;
+  const { data, error } = await query;
 
-	const rows = db.exec(sql, params);
+  if (error) {
+    throw new Error(`Failed to fetch favorites: ${error.message}`);
+  }
 
-	if (!rows[0] || !rows[0].values) {
-		return [];
-	}
-
-	const columns = rows[0].columns;
-	const result: Favorite[] = [];
-
-	for (const row of rows[0].values) {
-		if (!row) continue;
-		result.push({
-			id: row[0] as number,
-			user_id: row[1] as string,
-			profession: row[2] as string,
-			resource_name: row[3] as string,
-			resource_url: row[4] as string,
-			category: row[5] as string,
-			explanation: row[6] as string | null,
-			created_at: row[7] as string,
-		});
-	}
-
-	return result;
+  return (data as Favorite[]) || [];
 }
 
 export async function hasFavorite(
-	clerkId: string,
-	profession: string,
-	resourceName: string
+  clerkId: string,
+  profession: string,
+  resourceName: string
 ): Promise<boolean> {
-	const db = await getDb();
+  const supabase = createSupabaseServerClient();
 
-	const rows = db.exec(
-		`SELECT id FROM favorites WHERE user_id = ? AND profession = ? AND resource_name = ? LIMIT 1`,
-		[clerkId, profession, resourceName]
-	);
+  const { data, error } = await supabase
+    .from('favorites')
+    .select('id')
+    .eq('user_id', clerkId)
+    .eq('profession', profession)
+    .eq('resource_name', resourceName)
+    .limit(1)
+    .single();
 
-	if (!rows[0] || !rows[0].values || rows[0].values.length === 0) {
-		return false;
-	}
+  if (error && error.code !== 'PGRST106') {
+    throw new Error(`Failed to check favorite: ${error.message}`);
+  }
 
-	return true;
+  return !!data;
 }

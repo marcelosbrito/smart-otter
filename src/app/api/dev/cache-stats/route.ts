@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
-import { cache } from '@/lib/cache/knowledge-cache';
+import { getCacheStats } from '@/lib/cache/knowledge-cache';
 
-export function GET() {
-  const entries = cache.getEntries();
-  return NextResponse.json({ size: cache.getSize(), entries });
+export async function GET() {
+  try {
+    const stats = await getCacheStats();
+    return NextResponse.json(stats);
+  } catch (error) {
+    console.error('[cache-stats] Error:', error);
+    return NextResponse.json({ size: 0, oldest_created_at: null, newest_created_at: null }, { status: 500 });
+  }
 }

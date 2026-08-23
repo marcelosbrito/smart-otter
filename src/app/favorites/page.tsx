@@ -12,6 +12,11 @@ export default function FavoritesPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
+	function capitalize(str: string) {
+		if (!str) return str;
+		return str.replace(/\b\w/g, (c) => c.toUpperCase());
+	}
+
 	useEffect(() => {
 		let cancelled = false;
 		getFavoritesAction().then((data) => {
@@ -75,7 +80,7 @@ export default function FavoritesPage() {
 						const items = favorites.filter((f) => f.profession === profession);
 						return (
 							<section key={profession} className="mb-8">
-								<h2 className="text-lg font-semibold mb-4">{profession}</h2>
+								<h2 className="text-lg font-semibold mb-4">{capitalize(profession)}</h2>
 								<div className="space-y-3" role="list">
 									{items.map((fav) => (
 										<Card key={fav.id} role="listitem">

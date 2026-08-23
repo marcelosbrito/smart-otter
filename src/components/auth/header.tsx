@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import ClientAuth from './client-auth';
 import ThemeToggle from '@/components/ui/theme-toggle';
+import DevDrawer from '@/components/dev-drawer/DevDrawer';
 
 export default function Header() {
   return (
@@ -17,7 +18,12 @@ export default function Header() {
         </nav>
       </div>
 
-      <ClientAuth />
+      <div className="flex items-center gap-2">
+        {process.env.NODE_ENV === 'development' && (
+          <DevDrawer />
+        )}
+        <ClientAuth />
+      </div>
     </header>
   );
 }

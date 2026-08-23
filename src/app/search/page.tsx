@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronDown, Search as SearchIcon, AlertCircle, BookmarkPlus, Bookmark } from 'lucide-react';
+import SearchStatusWidget from '@/components/search/SearchStatusWidget';
 
 type Resource = { name: string; url: string; explanation: string };
 type NormalizedResponse = { profession: string; tools: Resource[]; communities: Resource[]; learningPlatforms: Resource[]; documentation: Resource[] };
@@ -32,6 +33,11 @@ export default function SearchPage() {
   const [savedFavorites, setSavedFavorites] = useState<Set<string>>(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
+  function capitalize(str: string) {
+    if (!str) return str;
+    return str.replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   useEffect(() => {
     async function checkAuth() {
       try {
@@ -44,6 +50,34 @@ export default function SearchPage() {
     }
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || !results?.profession) return;
+
+    async function loadFavoriteState() {
+      const allResources: Resource[] = [];
+      CATEGORIES.forEach((cat) => {
+        const items = results[cat.key as keyof NormalizedResponse];
+        if (items) allResources.push(...(items as Resource[]));
+      });
+
+      try {
+        const res = await fetch('/api/favorites/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profession: results.profession, resources: allResources.map((r) => r.name) }),
+        });
+        const data = await res.json();
+        if (data.saved) {
+          setSavedFavorites(new Set(data.saved));
+        }
+      } catch {
+        // silently fail — user can still save manually
+      }
+    }
+
+    loadFavoriteState();
+  }, [results, isAuthenticated]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -92,7 +126,7 @@ export default function SearchPage() {
 
   const hasResults = results && CATEGORIES.some((cat) => results[cat.key as keyof NormalizedResponse]?.length > 0);
 
-  async function handleSaveFavorite(resourceName: string, categoryKey: string, explanation?: string) {
+  async function handleSaveFavorite(resourceName: string, categoryKey: string, explanation?: string, url?: string) {
     if (!results || !results.profession) return;
 
     try {
@@ -102,7 +136,7 @@ export default function SearchPage() {
         body: JSON.stringify({
           profession: results.profession,
           resourceName,
-          resourceUrl: '',
+          resourceUrl: url || '',
           category: catLabels[categoryKey] || categoryKey,
           explanation,
         }),
@@ -145,6 +179,10 @@ export default function SearchPage() {
         </Button>
       </form>
 
+      <div className="mb-8">
+        <SearchStatusWidget />
+      </div>
+
       {error && (
         <div role="alert" aria-live="assertive" className="flex items-center gap-2 p-3 mb-6 rounded-lg bg-destructive/10 text-destructive text-sm">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -179,7 +217,7 @@ export default function SearchPage() {
       {hasResults && results && (
         <>
           <p aria-label={`Results for ${results.profession}`} className="text-sm text-muted-foreground mb-6 flex items-center gap-2">
-            Results for &ldquo;{results.profession}&rdquo; —{' '}
+            Results for &ldquo;{capitalize(results.profession)}&rdquo; —{' '}
             <Badge variant="outline" className="font-normal">{metrics?.provider}</Badge>
             {metrics && (
               <>
@@ -222,7 +260,7 @@ export default function SearchPage() {
                                    variant="ghost"
                                    size="sm"
                                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                   onClick={() => handleSaveFavorite(item.name, cat.key as string, item.explanation)}
+                                    onClick={() => handleSaveFavorite(item.name, cat.key as string, item.explanation, item.url)}
                                    aria-label={savedFavorites.has(item.name) ? `${item.name} saved to favorites` : `Save ${item.name} to favorites`}
                                  >
                                    {savedFavorites.has(item.name) ? (
