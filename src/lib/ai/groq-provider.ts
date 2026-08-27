@@ -54,11 +54,18 @@ export class GroqProvider implements ProviderInterface {
             { role: 'user', content: query },
           ],
           model,
-          temperature: 0.1,
+          temperature: 0.3,
         });
 
-        const text = completion.choices?.[0]?.message?.content || '';
-        return parseJsonResponse(text);
+      const text = completion.choices?.[0]?.message?.content || '';
+      
+      if (!text.trim()) {
+        throw new Error('Groq provider returned empty response');
+      }
+
+      console.log(`[GroqProvider] Raw response (first 200 chars): "${text.slice(0, 200)}..."`);
+
+      return parseJsonResponse(text);
       } catch (error) {
         if (!isGroqRetryableError(error)) {
           throw error;

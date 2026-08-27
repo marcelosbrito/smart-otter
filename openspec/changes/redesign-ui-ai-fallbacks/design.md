@@ -43,9 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="system">
-          {/* existing content */}
-        </ThemeProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" forceUseEffect>
+        {/* existing content */}
+      </ThemeProvider>
       </body>
     </html>
   );
@@ -65,7 +65,10 @@ The header gets a `<ThemeToggle>` button that calls `setTheme('dark')` / `setThe
 
 **Implementation:**
 ```ts
-// In searchService(), replace knowledge-base fallback with:
+// In searchService(), check cache first, then try providers:
+const cached = await getCache(query);
+if (cached) return { response: cached, metrics: { provider: 'Cache', cacheHit: true, ... } };
+
 try {
   const rawResponse = await groqProvider.search(query); // primary (groq)
   return normalizeAndCache(rawResponse, 'Groq');
@@ -76,16 +79,16 @@ try {
       const rawResponse = await ollamaProvider.search(query);
       return normalizeAndCache(rawResponse, 'Ollama', err.message); // err for metrics
     } catch (ollamaErr) {
-      // All providers failed — check cache or throw
-      const cached = cache.get(query);
-      if (cached) return { response: cached, metrics: { ...cacheMetrics, error: 'All AI providers unavailable' } };
+      // All providers failed — check cache again or throw
+      const cachedFallback = getCache(query);
+      if (cachedFallback) return { response: cachedFallback, metrics: { ...cacheMetrics, error: 'All AI providers unavailable' } };
       throw new Error(`Search failed after trying all providers`);
     }
   }
 }
 ```
 
-The `metrics` object includes the actual provider used and an optional `error` field describing what failed.
+The `metrics` object includes the actual provider used and an optional `error` field describing what failed. Cache is checked before attempting any provider call to avoid unnecessary latency for repeated queries.
 
 ### Decision 3: Groq Provider Uses Official SDK with Shared System Prompt
 

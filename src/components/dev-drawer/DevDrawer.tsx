@@ -26,6 +26,29 @@ export default function DevDrawer() {
   const [open, setOpen] = useState(false);
   const [activeProvider, setActiveProvider] = useState<ProviderType>(() => getStoredProvider());
 
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        setActiveProvider(e.newValue as ProviderType);
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also poll for changes in case storage event doesn't fire (same tab)
+    const interval = setInterval(() => {
+      const current = getStoredProvider();
+      if (current !== activeProvider) {
+        setActiveProvider(current);
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [activeProvider]);
+
   const handleSelect = (value: ProviderType) => {
     setActiveProvider(value);
     if (typeof window !== 'undefined') {

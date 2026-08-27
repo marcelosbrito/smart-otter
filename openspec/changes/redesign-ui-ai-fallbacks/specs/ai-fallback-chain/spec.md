@@ -54,7 +54,7 @@ The Groq provider MUST use the official `@groq/generative-ai` SDK (or compatible
 
 ### Requirement: Ollama Local Provider Implementation
 
-The Ollama provider MUST connect to a local Ollama instance via its REST API. It uses `OLLAMA_BASE_URL` (defaulting to `http://localhost:11434`) and requires a model name specified in `OLLAMA_MODEL` (defaulting to `llama3`). The system prompt must be identical across all providers for consistent output format.
+The Ollama provider MUST connect to a local Ollama instance via its REST API. It uses `OLLAMA_BASE_URL` (defaulting to `http://localhost:11434`) and requires a model name specified in `OLLAMA_MODEL` (defaulting to `llama3.2`). The system prompt must be identical across all providers for consistent output format.
 
 #### Scenario: Ollama connects to local instance successfully
 

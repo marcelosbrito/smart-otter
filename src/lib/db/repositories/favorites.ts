@@ -23,34 +23,43 @@ export async function saveFavorite(
 
   try {
     console.log('[favorites] Checking user:', clerkId);
-    const { data: existingUser, error: userError } = await supabase
+    
+    // Ensure user exists in users table (FK: favorites.user_id -> users.clerk_id)
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id')
       .eq('clerk_id', clerkId)
-      .single();
+      .limit(1);
 
-    if (userError) {
-      console.error('[favorites] User check error:', userError);
+    if (userError && !userData?.length) {
+      console.log('[favorites] Creating new user for Clerk ID:', clerkId);
+      const insertResult = await supabase.from('users').insert({ clerk_id: clerkId }).select().limit(1);
+      const rows = Array.isArray(insertResult?.data) ? insertResult.data : [];
+      if (rows.length === 0 || !rows[0]?.id) {
+        throw new Error('Failed to create user');
+      }
     }
 
-    let userId: string | null = existingUser?.id ?? null;
+    console.log('[favorites] Inserting favorite for user:', clerkId, 'resource:', resourceName);
+    
+    // Check if already saved before inserting
+    const { data: existing } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', clerkId)
+      .eq('profession', profession)
+      .eq('resource_name', resourceName)
+      .limit(1);
 
-    if (!userId) {
-      console.log('[favorites] Creating new user');
-      const insertResult = await supabase.from('users').insert({ clerk_id: clerkId }).select().single();
-      console.log('[favorites] User insert result:', JSON.stringify(insertResult));
-      userId = insertResult?.data?.id ?? null;
+    if (Array.isArray(existing) && existing.length > 0) {
+      console.log(`[favorites] Already saved: ${resourceName}`);
+      return existing[0] as Favorite;
     }
 
-    if (!userId) {
-      throw new Error('Failed to get user ID');
-    }
-
-    console.log('[favorites] Inserting favorite for user:', userId, 'resource:', resourceName);
     const { data, error } = await supabase
       .from('favorites')
       .insert({
-        user_id: userId,
+        user_id: clerkId,
         profession,
         resource_name: resourceName,
         resource_url: resourceUrl,
@@ -58,15 +67,15 @@ export async function saveFavorite(
         explanation: explanation || null,
       })
       .select()
-      .single();
+      .limit(1);
 
-    console.log('[favorites] Insert result:', JSON.stringify({ data, error }));
+    const rows = Array.isArray(data) ? data : [];
 
     if (error) {
       throw new Error(`Failed to save favorite: ${error.message} (${error.code})`);
     }
 
-    return data as Favorite;
+    return rows[0] as Favorite;
   } catch (err) {
     console.error('[favorites] saveFavorite error:', err);
     throw err;
@@ -108,7 +117,7 @@ export async function getFavorites(clerkId: string, profession?: string): Promis
     throw new Error(`Failed to fetch favorites: ${error.message}`);
   }
 
-  return (data as Favorite[]) || [];
+  return Array.isArray(data) ? (data as Favorite[]) : [];
 }
 
 export async function hasFavorite(
@@ -118,18 +127,19 @@ export async function hasFavorite(
 ): Promise<boolean> {
   const supabase = createSupabaseServerClient();
 
+  // FK: favorites.user_id -> users.clerk_id, so query directly by Clerk ID
   const { data, error } = await supabase
     .from('favorites')
     .select('id')
     .eq('user_id', clerkId)
     .eq('profession', profession)
     .eq('resource_name', resourceName)
-    .limit(1)
-    .single();
+    .limit(1);
 
   if (error && error.code !== 'PGRST106') {
-    throw new Error(`Failed to check favorite: ${error.message}`);
+    console.error(`[favorites] Error checking favorite: ${error.message} (code: ${error.code})`);
+    return false;
   }
 
-  return !!data;
+  return Array.isArray(data) && data.length > 0;
 }

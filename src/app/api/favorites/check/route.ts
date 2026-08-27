@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from '@clerk/nextjs/server';
-import { hasFavorite as repoHas } from '@/lib/db/repositories/favorites';
+import { hasFavorite as repoHas, saveFavorite as repoSave } from '@/lib/db/repositories/favorites';
 
 export async function POST(req: NextRequest) {
 	const { userId } = await getAuth(req);
@@ -25,14 +25,19 @@ export async function POST(req: NextRequest) {
 
 		const saved: string[] = [];
 		for (const resourceName of resources) {
-			const exists = await repoHas(userId, profession, resourceName);
-			if (exists) {
-				saved.push(resourceName);
+			try {
+				const exists = await repoHas(userId, profession, resourceName);
+				if (exists) {
+					saved.push(resourceName);
+				}
+			} catch (err: any) {
+				console.error(`[favorites/check] Error checking "${resourceName}":`, err.message || String(err));
 			}
 		}
 
 		return NextResponse.json({ saved });
 	} catch (err: any) {
+		console.error('[favorites/check] Unexpected error:', err);
 		return NextResponse.json(
 			{ error: err.message || 'Failed to check favorites' },
 			{ status: 500 }

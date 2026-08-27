@@ -35,6 +35,7 @@ export class OllamaProvider implements ProviderInterface {
             { role: 'user', content: query },
           ],
           stream: false,
+          temperature: 0.3,
         }),
         signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
       });
@@ -58,6 +59,12 @@ export class OllamaProvider implements ProviderInterface {
     }
 
     const text = data.message?.content || '';
+    
+    if (!text.trim()) {
+      throw new Error('Ollama provider returned empty response');
+    }
+
+    console.log(`[OllamaProvider] Raw response (first 200 chars): "${text.slice(0, 200)}..."`);
     return parseJsonResponse(text);
   }
 }

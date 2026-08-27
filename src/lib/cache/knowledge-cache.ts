@@ -8,49 +8,112 @@ export async function getCache(queryKey: string): Promise<NormalizedResponse | n
   const key = generateCacheKey(queryKey);
   const now = new Date().toISOString();
 
-  const { data, error } = await supabase
-    .from('knowledge_cache')
-    .select('response')
-    .eq('query_key', key)
-    .lt('expires_at', now)
-    .single();
+  console.log(`[cache] Looking up key="${key}" (expires_at >= ${now})`);
 
-  if (error && error.code !== 'PGRST106') {
-    console.warn('[cache] Error fetching cache entry:', error.message);
-    return null;
-  }
-
-  if (!data) {
-    const { data: expired, error: expiredError } = await supabase
+  try {
+    const { data, error } = await supabase
       .from('knowledge_cache')
       .select('response')
       .eq('query_key', key)
+      .gte('expires_at', now)
       .single();
 
-    if (expired && !expiredError) {
+    if (error && error.code !== 'PGRST106') {
+      console.warn(`[cache] Error fetching cache entry: ${error.message}`);
+      return null;
+    }
+
+    if (!data) {
+      const { data: expired, error: expiredError } = await supabase
+        .from('knowledge_cache')
+        .select('response')
+        .eq('query_key', key)
+        .single();
+
+      if (expired && !expiredError) {
+        console.log(`[cache] Found expired entry for "${key}", deleting`);
+        await supabase.from('knowledge_cache').delete().eq('query_key', key);
+        return null;
+      }
+    }
+
+    const rawEntry = data || (await getFromExpired(key));
+    if (!rawEntry) {
+      console.log(`[cache] MISS for query: "${queryKey}"`);
+      return null;
+    }
+
+    // Supabase .select('response').single() returns { response: {...} }, extract the actual data
+    const entry = (rawEntry as any).response ?? rawEntry;
+    
+    console.log(`[cache] Parsed cached entry keys: ${Object.keys(entry).join(', ')}, profession=${JSON.stringify((entry as any).profession)}`);
+
+    // Validate cached result has actual content
+    let totalResources = 0;
+    if ((entry as any).categories) {
+      const categoryKeys = ['Tools', 'Communities', 'LearningPlatforms', 'Documentation'] as const;
+      totalResources = categoryKeys.reduce((sum, cat) => {
+        return sum + (((entry as any).categories?.[cat] as any[])?.length || 0);
+      }, 0);
+    } else {
+      totalResources = ((entry as any).tools?.length || 0) 
+        + ((entry as any).communities?.length || 0) 
+        + ((entry as any).learningPlatforms?.length || 0) 
+        + ((entry as any).documentation?.length || 0);
+    }
+
+    if (!(entry as any).profession || totalResources === 0) {
+      console.warn(`[cache] Cached entry for "${key}" is empty (profession="${(entry as any).profession}", resources=${totalResources}) — deleting and returning MISS`);
       await supabase.from('knowledge_cache').delete().eq('query_key', key);
       return null;
     }
+
+    console.log(`[cache] HIT for query: "${queryKey}" (${totalResources} resources)`);
+    return entry as NormalizedResponse;
+  } catch (err) {
+    console.warn(`[cache] Exception fetching cache:`, err instanceof Error ? err.message : String(err));
+    return null;
   }
-
-  const entry = data || (await getFromExpired(key));
-  if (!entry) return null;
-
-  return entry as NormalizedResponse;
 }
 
 async function getFromExpired(queryKey: string): Promise<NormalizedResponse | null> {
   const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('knowledge_cache')
-    .select('response')
-    .eq('query_key', queryKey)
-    .single();
+  
+  try {
+    const { data, error } = await supabase
+      .from('knowledge_cache')
+      .select('response')
+      .eq('query_key', queryKey)
+      .single();
 
-  if (error || !data) return null;
+    if (error || !data) return null;
 
-  await supabase.from('knowledge_cache').delete().eq('query_key', queryKey);
-  return data as NormalizedResponse;
+    console.log(`[cache] Found expired entry for "${queryKey}", serving and deleting`);
+    await supabase.from('knowledge_cache').delete().eq('query_key', queryKey);
+    
+    const entry = (data as any).response ?? data;
+    let totalResources = 0;
+    if ((entry as any).categories) {
+      const categoryKeys = ['Tools', 'Communities', 'LearningPlatforms', 'Documentation'] as const;
+      totalResources = categoryKeys.reduce((sum, cat) => {
+        return sum + (((entry as any).categories?.[cat] as any[])?.length || 0);
+      }, 0);
+    } else {
+      totalResources = ((entry as any).tools?.length || 0) 
+        + ((entry as any).communities?.length || 0) 
+        + ((entry as any).learningPlatforms?.length || 0) 
+        + ((entry as any).documentation?.length || 0);
+    }
+
+    if (!(entry as any).profession || totalResources === 0) {
+      console.warn(`[cache] Expired cached entry for "${queryKey}" is empty — skipping`);
+      return null;
+    }
+
+    return entry as NormalizedResponse;
+  } catch {
+    return null;
+  }
 }
 
 export async function setCache(
@@ -76,7 +139,7 @@ export async function setCache(
 
 export async function clearCache(): Promise<void> {
   const supabase = createSupabaseServerClient();
-  const { error } = await supabase.from('knowledge_cache').delete();
+  const { error } = await supabase.from('knowledge_cache').delete().neq('query_key', '');
 
   if (error) {
     console.error('[cache] Error clearing cache:', error.message);

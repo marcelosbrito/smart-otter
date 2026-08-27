@@ -91,11 +91,13 @@ export default function SearchPage() {
     setResults(null);
     setMetrics(null);
 
+    const provider = localStorage.getItem('smart-otter-active-provider') || 'auto';
+
     try {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, provider }),
       });
       const data = await res.json();
 
@@ -199,7 +201,7 @@ export default function SearchPage() {
       {loading && (
         <div role="status" aria-busy="true" className="space-y-6">
           <Skeleton className="h-8 w-48 animate-pulse" />
-          {[1, 2, 3].map((i) => (
+          {[...Array(CATEGORIES.length)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
@@ -285,6 +287,13 @@ export default function SearchPage() {
 
       {!loading && !results && !error && (
         <p className="text-muted-foreground text-center py-12" role="status">Enter a profession above to discover curated resources.</p>
+      )}
+
+      {hasResults === false && results && !error && (
+        <div className="text-center py-12 space-y-2">
+          <p className="text-muted-foreground text-lg">No specific resources found for &ldquo;{results.profession}&rdquo;</p>
+          <p className="text-sm text-muted-foreground/70">Try a different profession or domain name.</p>
+        </div>
       )}
     </div>
   );
