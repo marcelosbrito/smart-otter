@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { ChevronDown, Search as SearchIcon, AlertCircle, BookmarkPlus, Bookmark } from 'lucide-react';
+import { Search as SearchIcon, AlertCircle } from 'lucide-react';
 import SearchStatusWidget from '@/components/search/SearchStatusWidget';
+import ResourceCategoryCarousel from '@/components/search/ResourceCategoryCarousel';
 
 type Resource = { name: string; url: string; explanation: string };
 type NormalizedResponse = { profession: string; tools: Resource[]; communities: Resource[]; learningPlatforms: Resource[]; documentation: Resource[] };
@@ -52,12 +51,14 @@ export default function SearchPage() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || !results?.profession) return;
+    if (!isAuthenticated || !results) return;
+
+    const profession = results.profession;
 
     async function loadFavoriteState() {
       const allResources: Resource[] = [];
       CATEGORIES.forEach((cat) => {
-        const items = results[cat.key as keyof NormalizedResponse];
+        const items = results![cat.key as keyof NormalizedResponse];
         if (items) allResources.push(...(items as Resource[]));
       });
 
@@ -65,7 +66,7 @@ export default function SearchPage() {
         const res = await fetch('/api/favorites/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profession: results.profession, resources: allResources.map((r) => r.name) }),
+          body: JSON.stringify({ profession, resources: allResources.map((r) => r.name) }),
         });
         const data = await res.json();
         if (data.saved) {
@@ -115,11 +116,13 @@ export default function SearchPage() {
     }
   }
 
-  function handleCategoryClick(categoryKey: string) {
+  // Category filter URL handling preserved for compatibility (used by external links)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function handleCategoryClick(_categoryKey: string) {
     const url = new URL(window.location.href);
     url.searchParams.set('q', query.trim());
-    if (categoryKey !== 'all') {
-      url.searchParams.set('category', categoryKey);
+    if (_categoryKey !== 'all') {
+      url.searchParams.set('category', _categoryKey);
     } else {
       url.searchParams.delete('category');
     }
@@ -157,6 +160,21 @@ export default function SearchPage() {
     }
   }
 
+  function handleCardFavorite(resourceName: string) {
+    // Find which category and resource this belongs to
+    if (!results) return;
+    for (const cat of CATEGORIES) {
+      const items = results[cat.key as keyof NormalizedResponse] as Resource[] | undefined;
+      if (items) {
+        const resource = items.find((r) => r.name === resourceName);
+        if (resource) {
+          handleSaveFavorite(resourceName, cat.key as string, resource.explanation, resource.url);
+          return;
+        }
+      }
+    }
+  }
+
   const catLabels: Record<string, string> = {
     tools: 'Tools',
     communities: 'Communities',
@@ -165,7 +183,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12" role="main">
+    <div className="max-w-6xl mx-auto px-6 py-12" role="main">
       <h1 className="text-3xl font-bold mb-8">Search Resources</h1>
 
       <form onSubmit={handleSearch} className="flex gap-2 mb-8" aria-label="Resource search form">
@@ -202,16 +220,13 @@ export default function SearchPage() {
         <div role="status" aria-busy="true" className="space-y-6">
           <Skeleton className="h-8 w-48 animate-pulse" />
           {[...Array(CATEGORIES.length)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-                  <Skeleton className="h-5 w-1/2" />
-                  <Badge variant="secondary" className="text-xs"><Skeleton className="w-16 h-4 rounded-full" /></Badge>
-                </div>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </CardContent>
-            </Card>
+            <div key={i} className="animate-pulse space-y-3">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex gap-4 overflow-hidden">
+                <Skeleton className="w-[320px] h-[180px] rounded-xl flex-shrink-0" />
+                <Skeleton className="w-[320px] h-[180px] rounded-xl flex-shrink-0 hidden sm:block" />
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -231,57 +246,21 @@ export default function SearchPage() {
             )}
           </p>
 
-          <div role="search" className="space-y-4 mb-6">
-            {CATEGORIES.map((cat) => {
-              const items = results[cat.key as keyof NormalizedResponse] as Resource[] | undefined;
-              if (!items || items.length === 0) return null;
+          {CATEGORIES.map((cat) => {
+            const items = results[cat.key as keyof NormalizedResponse] as Resource[] | undefined;
+            if (!items || items.length === 0) return null;
 
-              return (
-                <Collapsible key={cat.key}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-xl border bg-background hover:bg-secondary/50 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none">
-                    <span className="font-semibold text-base">{cat.label} ({items.length})</span>
-                    <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform duration-200" />
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3 space-y-2">
-                    {items.map((item, idx) => (
-                      <Card
-                        key={idx}
-                        className="group hover:shadow-md transition-all duration-200 animate-in fade-in fill-mode-forwards"
-                        style={{ animationDelay: `${idx * 75}ms`, animationDuration: '300ms' }}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
-                            <div>
-                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">{item.name}</a>
-                              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{item.explanation}</p>
-                            </div>
-                              <div className="flex items-center gap-2">
-                               <Badge variant="secondary" className="text-xs capitalize rounded-full">{cat.label.replace(' ', '').replace(/([A-Z])/g, ' $1')}</Badge>
-                               {isAuthenticated ? (
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => handleSaveFavorite(item.name, cat.key as string, item.explanation, item.url)}
-                                   aria-label={savedFavorites.has(item.name) ? `${item.name} saved to favorites` : `Save ${item.name} to favorites`}
-                                 >
-                                   {savedFavorites.has(item.name) ? (
-                                     <Bookmark className="w-4 h-4 fill-current text-primary" />
-                                   ) : (
-                                     <BookmarkPlus className="w-4 h-4" />
-                                   )}
-                                 </Button>
-                               ) : null}
-                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
-          </div>
+            return (
+              <ResourceCategoryCarousel
+                key={cat.key}
+                label={cat.label}
+                resources={items}
+                onSaveFavorite={handleCardFavorite}
+                savedFavorites={savedFavorites}
+                isAuthenticated={isAuthenticated}
+              />
+            );
+          })}
         </>
       )}
 
