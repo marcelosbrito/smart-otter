@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search as SearchIcon, AlertCircle } from 'lucide-react';
-import SearchStatusWidget from '@/components/search/SearchStatusWidget';
 import ResourceCategoryCarousel from '@/components/search/ResourceCategoryCarousel';
 
 type Resource = { name: string; url: string; explanation: string };
@@ -199,10 +198,6 @@ export default function SearchPage() {
         </Button>
       </form>
 
-      <div className="mb-8">
-        <SearchStatusWidget />
-      </div>
-
       {error && (
         <div role="alert" aria-live="assertive" className="flex items-center gap-2 p-3 mb-6 rounded-lg bg-destructive/10 text-destructive text-sm">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -223,8 +218,8 @@ export default function SearchPage() {
             <div key={i} className="animate-pulse space-y-3">
               <Skeleton className="h-5 w-32" />
               <div className="flex gap-4 overflow-hidden">
-                <Skeleton className="w-[320px] h-[180px] rounded-xl flex-shrink-0" />
-                <Skeleton className="w-[320px] h-[180px] rounded-xl flex-shrink-0 hidden sm:block" />
+                <Skeleton className="w-[320px] h-[260px] rounded-xl flex-shrink-0" />
+                <Skeleton className="w-[320px] h-[260px] rounded-xl flex-shrink-0 hidden sm:block" />
               </div>
             </div>
           ))}
@@ -233,6 +228,8 @@ export default function SearchPage() {
 
       {hasResults && results && (
         <>
+          <h2 className="text-xl font-semibold mb-6">{capitalize(results.profession)}</h2>
+
           <p aria-label={`Results for ${results.profession}`} className="text-sm text-muted-foreground mb-6 flex items-center gap-2">
             Results for &ldquo;{capitalize(results.profession)}&rdquo; —{' '}
             <Badge variant="outline" className="font-normal">{metrics?.provider}</Badge>

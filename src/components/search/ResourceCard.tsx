@@ -22,20 +22,20 @@ export default function ResourceCard({
   isAuthenticated = null,
 }: ResourceCardProps) {
   return (
-    <div className="group relative flex-shrink-0 w-[320px] rounded-xl border bg-card p-5 transition-shadow hover:shadow-md">
+    <div className="group relative flex-shrink-0 w-[320px] rounded-xl border bg-card p-5 transition-shadow hover:shadow-md h-[260px] flex flex-col justify-between">
       <div className="flex items-start justify-between gap-3 mb-3">
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold text-primary hover:underline flex items-center gap-1.5 break-all"
+          className="font-semibold text-primary hover:underline flex items-center gap-1.5 break-all line-clamp-2"
         >
           {name}
           <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-60" />
         </a>
       </div>
 
-      <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-2">{explanation}</p>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-4">{explanation}</p>
 
       <div className="flex items-center justify-between pt-1">
         <Badge variant="secondary" className="text-xs rounded-full capitalize">

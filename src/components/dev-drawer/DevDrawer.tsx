@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CogIcon, CheckIcon } from 'lucide-react';
+import SearchStatusWidget from '@/components/search/SearchStatusWidget';
 
 export type ProviderType = 'auto' | 'groq' | 'ollama';
 
@@ -89,6 +90,11 @@ export default function DevDrawer() {
               </div>
             </button>
           ))}
+        </div>
+
+        <div className="mt-4 pt-4 border-t">
+          <h4 className="text-sm font-medium mb-2">Provider Status</h4>
+          <SearchStatusWidget />
         </div>
 
         <div className="mt-4 pt-4 border-t">
