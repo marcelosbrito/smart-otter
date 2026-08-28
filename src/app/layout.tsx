@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from '@/components/auth/header';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import Footer from '@/components/ui/footer';
 import ThemeWrapperClient from '@/components/ui/theme-wrapper-client';
 import "./globals.css";
 
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <body className="min-h-full flex flex-col">
           <ThemeWrapperClient>
             <Header />
+            <div className="pt-20" />
             <ErrorBoundary>{children}</ErrorBoundary>
+            <Footer />
           </ThemeWrapperClient>
         </body>
       </html>

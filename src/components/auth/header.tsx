@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ClientAuth from './client-auth';
 import ThemeToggle from '@/components/ui/theme-toggle';
@@ -22,8 +25,25 @@ const OtterIcon = () => (
 );
 
 export default function Header() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-border">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b transition-all duration-200 ${
+        scrolled
+          ? 'bg-white/70 dark:bg-[#061826]/80 backdrop-blur-md shadow-sm'
+          : 'bg-background'
+      }`}
+    >
       <div className="flex items-center gap-8">
         <Link href="/" className="font-bold text-lg tracking-tight flex items-center gap-2">
           <OtterIcon />
