@@ -7,21 +7,92 @@ import ThemeToggle from '@/components/ui/theme-toggle';
 import DevDrawer from '@/components/dev-drawer/DevDrawer';
 
 const OtterIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 40 40"
-    fill="none"
-    className="size-5 text-current"
-    aria-hidden="true"
-  >
-    <rect x="1" y="1" width="38" height="38" rx="6" stroke="currentColor" strokeWidth="2.5" />
-    <ellipse cx="20" cy="20" rx="14" ry="13" fill="none" stroke="currentColor" strokeWidth="2" />
-    <circle cx="14" cy="17" r="2" fill="currentColor" />
-    <circle cx="26" cy="17" r="2" fill="currentColor" />
-    <ellipse cx="20" cy="23" rx="5" ry="3.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-    <line x1="18" y1="24" x2="18" y2="26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="22" y1="24" x2="22" y2="26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 40 40"
+  fill="none"
+  className="size-5 text-current"
+  aria-hidden="true"
+>
+  {/* Background / Frame */}
+  <rect
+    x="1.5"
+    y="1.5"
+    width="37"
+    height="37"
+    rx="6"
+    fill="currentColor"
+  />
+
+  {/* Otter head — negative space */}
+  <path
+    d="
+      M10 15
+      C10 10 14 7 20 7
+      C26 7 30 10 30 15
+      C32 16 33 18 33 21
+      C33 28 27 33 20 33
+      C13 33 7 28 7 21
+      C7 18 8 16 10 15Z
+    "
+    fill="var(--background)"
+  />
+
+  {/* Eyes */}
+  <circle
+    cx="15"
+    cy="18"
+    r="1.7"
+    fill="currentColor"
+  />
+
+  <circle
+    cx="25"
+    cy="18"
+    r="1.7"
+    fill="currentColor"
+  />
+
+  {/* Muzzle */}
+  <ellipse
+    cx="20"
+    cy="24"
+    rx="5"
+    ry="3.5"
+    fill="currentColor"
+  />
+
+  {/* Nose */}
+  <ellipse
+    cx="20"
+    cy="23"
+    rx="1.8"
+    ry="1.2"
+    fill="var(--background)"
+  />
+
+  {/* Mouth */}
+  <path
+    d="M20 24.2V26.5"
+    stroke="var(--background)"
+    strokeWidth="1.2"
+    strokeLinecap="round"
+  />
+
+  <path
+    d="M20 26.5C19 27.4 18.1 27.5 17.3 27"
+    stroke="var(--background)"
+    strokeWidth="1.2"
+    strokeLinecap="round"
+  />
+
+  <path
+    d="M20 26.5C21 27.4 21.9 27.5 22.7 27"
+    stroke="var(--background)"
+    strokeWidth="1.2"
+    strokeLinecap="round"
+  />
+</svg>
 );
 
 export default function Header() {

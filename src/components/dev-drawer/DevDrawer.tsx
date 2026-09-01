@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CogIcon, CheckIcon } from 'lucide-react';
@@ -101,6 +101,10 @@ export default function DevDrawer() {
           <h4 className="text-sm font-medium mb-2">Cache Management</h4>
           <CacheActions />
         </div>
+
+        <DialogFooter className="sm:justify-start">
+          <Button variant="default" size="sm" onClick={() => setOpen(false)}>OK</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

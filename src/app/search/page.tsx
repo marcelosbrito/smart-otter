@@ -230,18 +230,15 @@ export default function SearchPage() {
         <>
           <h2 className="text-xl font-semibold mb-6">{capitalize(results.profession)}</h2>
 
-          <p aria-label={`Results for ${results.profession}`} className="text-sm text-muted-foreground mb-6 flex items-center gap-2">
-            Results for &ldquo;{capitalize(results.profession)}&rdquo; —{' '}
-            <Badge variant="outline" className="font-normal">{metrics?.provider}</Badge>
-            {metrics && (
-              <>
-                <span className="text-muted-foreground/60">·</span>
-                <span>{metrics.cacheHit ? 'Cached' : 'Fresh'}</span>
-                <span className="text-muted-foreground/60">·</span>
-                <span>{metrics.durationMs}ms</span>
-              </>
-            )}
-          </p>
+          {metrics && (
+            <p className="text-sm text-muted-foreground mb-6 flex items-center gap-2">
+              <Badge variant="outline" className="font-normal">{metrics.provider}</Badge>
+              <span className="text-muted-foreground/60">·</span>
+              <span>{metrics.cacheHit ? 'Cached' : 'Fresh'}</span>
+              <span className="text-muted-foreground/60">·</span>
+              <span>{metrics.durationMs}ms</span>
+            </p>
+          )}
 
           {CATEGORIES.map((cat) => {
             const items = results[cat.key as keyof NormalizedResponse] as Resource[] | undefined;

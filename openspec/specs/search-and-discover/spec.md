@@ -134,7 +134,7 @@ Feature: Smart Otter — Status Indicator Widget
 
 ### Requirement: Profession Name Display on Results Page
 
-The system MUST display the searched profession as a prominent heading when search results are available.
+The system MUST display the searched profession as a prominent heading when search results are available. The "Results for 'X'" text is removed from the metrics paragraph; provider badge, cache status, and latency remain below the heading.
 
 Feature: Smart Otter — Search and Discover
 
@@ -151,6 +151,13 @@ Feature: Smart Otter — Search and Discover
 - **WHEN** the results page renders with zero resources across all categories
 - **THEN** no profession name heading is displayed
 - **AND** the "no specific resources found" message is shown instead
+
+#### Scenario: No "Results for Profession" text appears in metrics paragraph
+
+- **GIVEN** a user has performed a search and results have loaded
+- **WHEN** the results page renders with the profession heading
+- **THEN** no "Results for 'X'" text appears before the provider badge in the metrics paragraph
+- **AND** the provider badge, cache status, and latency remain visible below the heading
 
 ### Requirement: Otter Icon in Header Logo
 

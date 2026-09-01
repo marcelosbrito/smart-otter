@@ -1,6 +1,16 @@
 export default function ChangelogPage() {
   const releases = [
     {
+      version: 'v0.4.1',
+      date: 'September 1, 2026',
+      title: 'UI Polish — Favicon, Dev Drawer OK Button, Search Header Cleanup',
+      changes: [
+        'Optimized favicon SVG for legibility at 16–32px (reduced viewBox to 32×32, explicit hex colors)',
+        'Added visible "OK" button in Dev Drawer footer that closes the dialog',
+        'Removed "Results for Profession" subheading from search results page (provider badge and cache/latency metrics retained)',
+      ],
+    },
+    {
       version: 'v0.4.0',
       date: 'August 28, 2026',
       title: 'Sticky Header + Footer + Supporting Pages',
@@ -26,7 +36,7 @@ export default function ChangelogPage() {
       ],
     },
     {
-      version: 'v0.3.1',
+      version: 'v0.3.0',
       date: 'August 27, 2026',
       title: 'Horizontal Carousels + TASA Orbiter Typography',
       changes: [
@@ -37,7 +47,7 @@ export default function ChangelogPage() {
       ],
     },
     {
-      version: 'v0.3.1',
+      version: 'v0.2.1',
       date: 'August 23, 2026',
       title: 'Supabase Migration + Dev Drawer Provider Toggle',
       changes: [
