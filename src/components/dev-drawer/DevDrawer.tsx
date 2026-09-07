@@ -59,10 +59,12 @@ export default function DevDrawer() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-          <CogIcon className="size-4" />
-        </Button>
+      <DialogTrigger>
+        <span role="button" tabIndex={0}>
+          <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+            <CogIcon className="size-4" />
+          </Button>
+        </span>
       </DialogTrigger>
 
       <DialogContent showCloseButton className="max-w-md">

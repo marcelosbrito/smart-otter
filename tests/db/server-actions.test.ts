@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 describe('Favorites Repository (PostgreSQL)', () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -43,7 +43,7 @@ export default function SearchStatusWidget() {
     return () => { cancelled = true; };
   }, [provider]);
 
-  const labels: Record<StatusType, string> = {
+  const labels: Record<string, string> = {
     groq: 'Groq API (Online)',
     local: 'Local GPU Engine (Fallback Active)',
     offline: 'Local GPU Engine (Offline — using Groq)',
@@ -51,7 +51,7 @@ export default function SearchStatusWidget() {
 
   if (!status) return null;
 
-  const indicators: Record<StatusType, string> = {
+  const indicators: Record<string, string> = {
     groq: '\u{1F535}',
     local: '\u{1F7E2}',
     offline: '\u{26AA}',

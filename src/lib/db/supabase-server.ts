@@ -53,7 +53,7 @@ function buildStub(): any {
   };
 }
 
-export function createSupabaseServerClient() {
+export function createSupabaseServerClient(): ReturnType<typeof createClient<Database>> | any {
   if (cachedClient !== null) {
     return cachedClient;
   }

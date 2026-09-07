@@ -1,4 +1,4 @@
-import { createBrowserClient, createServerComponentClient } from '@supabase/ssr';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from './types';
 
 export const supabase = createBrowserClient<Database>(
