@@ -128,9 +128,7 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        {process.env.NODE_ENV === 'development' && (
-          <DevDrawer />
-        )}
+        <DevDrawer />
         <ThemeToggle />
         <ClientAuth />
       </div>
