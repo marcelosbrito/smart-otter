@@ -35,7 +35,7 @@ No fixture setup; Node environment, not browser. Vitest alias: `@/*` → `./src/
 ## Environment Variables
 Required (from `.env.local.example`):
 - **Clerk**: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, sign-in/sign-up URL overrides (`NEXT_PUBLIC_CLERK_SIGN_IN_URL`, etc.)
-- **AI providers**: `GROQ_API_KEY` (primary), `GROQ_MODEL` defaults to `openai/gpt-oss-120b`; `OLLAMA_BASE_URL` defaults to `http://localhost:11434`, `NEXT_PUBLIC_OLLAMA_BASE_URL` mirrors it for client-side status checks, `OLLAMA_MODEL=llama3.2`. For remote Ollama via Cloudflare Tunnel, set `OLLAMA_BASE_URL` to the HTTPS tunnel URL.
+- **AI providers**: `GROQ_API_KEY` (primary), `GROQ_MODEL` defaults to `openai/gpt-oss-120b`; `OLLAMA_BASE_URL` defaults to `http://localhost:11434`, `NEXT_OLLAMA_BASE_URL` mirrors it for client-side status checks, `OLLAMA_MODEL=llama3.2`. For remote Ollama via Cloudflare Tunnel, set `OLLAMA_BASE_URL` to the HTTPS tunnel URL.
 - **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Browser client also uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as fallback for anon key.
 
 ## Gotchas
