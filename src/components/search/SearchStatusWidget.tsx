@@ -21,7 +21,7 @@ export default function SearchStatusWidget() {
           setStatus('groq');
         } else if (provider === 'ollama') {
           try {
-            const baseUrl = process.env.NEXT_OLLAMA_BASE_URL || 'http://localhost:11434';
+            const baseUrl = process.env.NEXT_OLLAMA_BASE_URL ;
             await fetch(`${baseUrl}/api/tags`);
             setStatus('local');
           } catch {
@@ -29,7 +29,7 @@ export default function SearchStatusWidget() {
           }
         } else {
           try {
-            const baseUrl = process.env.NEXT_OLLAMA_BASE_URL || 'http://localhost:11434';
+            const baseUrl = process.env.NEXT_OLLAMA_BASE_URL ;
             await fetch(`${baseUrl}/api/tags`);
             setStatus('local');
           } catch {

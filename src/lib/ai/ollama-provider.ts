@@ -19,7 +19,7 @@ export class OllamaProvider implements ProviderInterface {
   readonly name = 'Ollama';
 
   async search(query: string): Promise<RawResponse> {
-    const baseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+    const baseUrl = process.env.OLLAMA_BASE_URL ;
     // Use OLLAMA_MODEL env var (e.g., llama3.2); falls back to llama3.2 for better quality.
     const model = process.env.OLLAMA_MODEL || 'llama3.2';
 
