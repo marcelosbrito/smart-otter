@@ -18,7 +18,7 @@ AI-powered resource discovery platform for professionals and technical domains. 
 | Framework | Next.js 16.3 (App Router), React 19, TypeScript strict mode |
 | Auth | Clerk (session-based, middleware-protected) |
 | Database | Supabase PostgreSQL (Free tier) — users, favorites, knowledge_cache tables |
-| AI Providers | Groq Cloud (primary) + Ollama local/GPU (fallback via Cloudflare Tunnel) |
+| AI Providers | Groq Cloud (primary) + Ollama local/GPU (fallback via Cloudflare Quick Tunnel) |
 | UI Components | @base-ui/react, Tailwind CSS v4, Lucide icons |
 | Styling | Theme-aware with dark mode support |
 
@@ -77,7 +77,7 @@ CLERK_SECRET_KEY=your_clerk_secret_key
 
 # AI Providers
 GROQ_API_KEY=your_groq_api_key          # Required for primary provider
-OLLAMA_BASE_URL=http://localhost:11434  # Local Ollama or Cloudflare Tunnel URL
+OLLAMA_BASE_URL=http://localhost:11434  # Local Ollama or Quick Tunnel URL (see Cloudflare Quick Tunnel Setup)
 OLLAMA_MODEL=llama3.2                   # Model to use with Ollama
 
 # Supabase (required)
@@ -95,15 +95,57 @@ npm start          # Serve production build
 
 Open [http://localhost:3000](http://localhost:3000) to use Smart Otter.
 
-## Cloudflare Tunnel Setup (Optional — for Remote Ollama)
+## Cloudflare Quick Tunnel Setup (Development — for Remote Ollama)
 
-To expose a local Ollama instance via HTTPS without port forwarding:
+During development, Ollama runs locally on your machine at `http://localhost:11434`. The deployed Vercel application cannot reach localhost directly and needs a public HTTPS endpoint to proxy requests. Cloudflare Quick Tunnels provide this without requiring a custom domain or permanent tunnel configuration.
 
-1. Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/
-2. Run the setup script: `bash scripts/setup-tunnel.sh`
-3. Copy the generated HTTPS URL into `OLLAMA_BASE_URL` in `.env.local`
+### Architecture
 
-The Dev Drawer's status widget will ping this endpoint and show online/offline state.
+```
+Vercel Deployment (https://smart-otter.vercel.app)
+    ↓
+Cloudflare Quick Tunnel (https://<generated-name>.trycloudflare.com)
+    ↓
+cloudflared --url http://localhost:11434 --http-host-header="localhost:11434"
+    ↓
+http://localhost:11434
+    ↓
+Ollama (local model, e.g., llama3.2)
+```
+
+### Quick Tunnel Command
+
+Install `cloudflared` from https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/, then run:
+
+```bash
+cloudflared tunnel --url http://localhost:11434 --http-host-header="localhost:11434"
+```
+
+The `--http-host-header="localhost:11434"` flag is required because Ollama's API validates the Host header against its local binding. Without it, requests forwarded through the tunnel may be rejected.
+
+### BAT Helper (Windows)
+
+A convenience script is provided at `start-ollama-quick-tunnel.bat`. It:
+1. Starts the Cloudflare Quick Tunnel pointing to Ollama.
+2. Extracts the generated `trycloudflare.com` URL from cloudflared's output.
+3. Copies the URL to the Windows clipboard automatically.
+4. Keeps the tunnel running while the terminal remains open.
+
+### Step-by-Step Workflow
+
+1. **Start Ollama** — Ensure Ollama is running locally (default: `http://localhost:11434`).
+2. **Start the Quick Tunnel** — Run `start-ollama-quick-tunnel.bat` or the `cloudflared tunnel` command above.
+3. **Copy the generated URL** — The script copies it automatically; otherwise, copy from terminal output (e.g., `https://<random-name>.trycloudflare.com`).
+4. **Configure Vercel** — Set `OLLAMA_BASE_URL=https://<generated-name>.trycloudflare.com` in your Vercel project environment settings.
+5. **Redeploy** — Trigger a new deployment so the updated environment variable takes effect.
+6. **Keep the tunnel running** — Leave the terminal open while testing the deployed application.
+7. **Stop the tunnel** — Press `Ctrl+C` when finished.
+
+> **Note:** The Quick Tunnel URL is temporary and changes each time you start a new tunnel (e.g., after restarting your computer). Update `OLLAMA_BASE_URL` in Vercel whenever the URL changes, then redeploy.
+
+### Production Note
+
+Quick Tunnels are intended for development and testing only. For production use with a controlled domain, configure a Named Cloudflare Tunnel separately — this is outside the scope of the current portfolio project setup.
 
 ## Database Schema
 
